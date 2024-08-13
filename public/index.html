@@ -1,0 +1,27 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My World of Text</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+    <div id="login-screen">
+        <input type="text" id="nickname-input" placeholder="Enter your nickname">
+        <button id="login-button">Login</button>
+    </div>
+    <div id="world-container" style="display: none;">
+        <div id="world"></div>
+        <div id="controls">
+            <input type="color" id="color-picker" value="#000000">
+            <label><input type="checkbox" id="show-coordinates"> Show Coordinates</label>
+        </div>
+        <div id="coordinates"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
