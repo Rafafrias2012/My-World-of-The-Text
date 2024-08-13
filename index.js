@@ -1,31 +1,34 @@
 // server.js
 const express = require('express');
-const app = express();
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
+const http = require('http');
+const socketIo = require('socket.io');
 const path = require('path');
+
+const app = express();
+const server = http.createServer(app);
+const io = socketIo(server);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-const world = {};
+const worldData = {};
 
 io.on('connection', (socket) => {
   console.log('A user connected');
 
   socket.on('login', (nickname) => {
     socket.nickname = nickname;
-    socket.emit('loginSuccess', nickname);
+    console.log(`${nickname} logged in`);
   });
 
-  socket.on('setText', (data) => {
-    const { x, y, text, color } = data;
-    if (!world[y]) world[y] = {};
-    world[y][x] = { text, color, nickname: socket.nickname };
-    io.emit('textUpdate', { x, y, text, color, nickname: socket.nickname });
+  socket.on('addText', (data) => {
+    const { x, y, text } = data;
+    if (!worldData[y]) worldData[y] = {};
+    worldData[y][x] = { text, author: socket.nickname };
+    io.emit('textAdded', { x, y, text, author: socket.nickname });
   });
 
-  socket.on('requestInitialState', () => {
-    socket.emit('initialState', world);
+  socket.on('requestInitialData', () => {
+    socket.emit('initialData', worldData);
   });
 
   socket.on('disconnect', () => {
@@ -34,6 +37,6 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-http.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
