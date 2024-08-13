@@ -35,8 +35,31 @@ body {
 }
 
 #controls {
+    display: flex;
+    align-items: center;
     padding: 10px;
     background-color: #f0f0f0;
+}
+
+#text-input {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+#color-picker {
+    margin-right: 10px;
+}
+
+#paste-btn {
+    padding: 5px 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+#paste-btn:hover {
+    background-color: #45a049;
 }
 
 #text-input {
