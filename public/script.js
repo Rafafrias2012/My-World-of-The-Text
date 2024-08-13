@@ -5,19 +5,22 @@ const loginScreen = document.getElementById('login-screen');
 const gameScreen = document.getElementById('game-screen');
 const loginBtn = document.getElementById('login-btn');
 const nicknameInput = document.getElementById('nickname');
+const worldIdInput = document.getElementById('world-id');
 const canvas = document.getElementById('text-canvas');
 const ctx = canvas.getContext('2d');
 const textInput = document.getElementById('text-input');
 
 let nickname = '';
+let worldId = '';
 let offsetX = 0;
 let offsetY = 0;
 const cellSize = 20;
 
 loginBtn.addEventListener('click', () => {
     nickname = nicknameInput.value.trim();
-    if (nickname) {
-        socket.emit('login', nickname);
+    worldId = worldIdInput.value.trim();
+    if (nickname && worldId) {
+        socket.emit('login', { nickname, worldId });
         loginScreen.style.display = 'none';
         gameScreen.style.display = 'flex';
         initializeCanvas();
@@ -33,20 +36,17 @@ function initializeCanvas() {
 socket.on('initialData', (data) => {
     for (const y in data) {
         for (const x in data[y]) {
-            drawText(parseInt(x), parseInt(y), data[y][x].text, data[y][x].author);
+            drawText(parseInt(x), parseInt(y), data[y][x].text);
         }
     }
 });
 
-function drawText(x, y, text, author) {
+function drawText(x, y, text) {
     const screenX = (x - offsetX) * cellSize;
     const screenY = (y - offsetY) * cellSize;
     ctx.fillStyle = 'black';
     ctx.font = '14px Arial';
     ctx.fillText(text, screenX, screenY + cellSize);
-    ctx.fillStyle = 'gray';
-    ctx.font = '10px Arial';
-    ctx.fillText(author, screenX, screenY + cellSize + 12);
 }
 
 canvas.addEventListener('click', (e) => {
