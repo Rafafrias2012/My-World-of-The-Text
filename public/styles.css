@@ -53,3 +53,31 @@ body {
     border-radius: 3px;
     pointer-events: none;
 }
+
+#bottom-links {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px;
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1;
+    text-align: right;
+}
+
+#ascii-link {
+    margin: 0;
+    white-space: pre;
+    color: #333;
+}
+
+#ascii-link a {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+#ascii-link a:hover {
+    text-decoration: underline;
+}
