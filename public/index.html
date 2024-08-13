@@ -1,3 +1,4 @@
+<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,21 +8,20 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="login-container">
+    <div id="login-screen">
         <h1>My World of Text</h1>
         <input type="text" id="nickname" placeholder="Enter your nickname">
         <button id="login-btn">Login</button>
     </div>
-    <div id="world-container" style="display: none;">
+    <div id="game-screen" style="display: none;">
         <div id="canvas-container">
             <canvas id="text-canvas"></canvas>
         </div>
         <div id="controls">
             <input type="text" id="text-input" placeholder="Type your text here">
-            <button id="clear-btn">Clear</button>
         </div>
     </div>
-    <div id="footer">
+    <div id="bottom-links">
         <a href="https://discord.gg/K97uXkZh" target="_blank">Join our Discord</a>
     </div>
     <script src="/socket.io/socket.io.js"></script>
