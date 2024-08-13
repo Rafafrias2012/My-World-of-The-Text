@@ -11,24 +11,33 @@ const io = socketIo(server);
 app.use(express.static(path.join(__dirname, 'public')));
 
 const worldData = {};
+const worlds = {};
 
 io.on('connection', (socket) => {
   console.log('A user connected');
 
-  socket.on('login', (nickname) => {
+  socket.on('login', (data) => {
+    const { nickname, worldId } = data;
     socket.nickname = nickname;
-    console.log(`${nickname} logged in`);
+    socket.worldId = worldId;
+    if (!worlds[worldId]) {
+      worlds[worldId] = {};
+    }
+    console.log(`${nickname} logged in to world ${worldId}`);
   });
 
   socket.on('addText', (data) => {
     const { x, y, text } = data;
-    if (!worldData[y]) worldData[y] = {};
-    worldData[y][x] = { text, author: socket.nickname };
-    io.emit('textAdded', { x, y, text, author: socket.nickname });
+    const worldId = socket.worldId;
+    if (!worlds[worldId]) worlds[worldId] = {};
+    if (!worlds[worldId][y]) worlds[worldId][y] = {};
+    worlds[worldId][y][x] = { text, author: socket.nickname };
+    io.to(worldId).emit('textAdded', { x, y, text });
   });
 
-  socket.on('requestInitialData', () => {
-    socket.emit('initialData', worldData);
+  socket.on('requestInitialData', (worldId) => {
+    socket.join(worldId);
+    socket.emit('initialData', worlds[worldId] || {});
   });
 
   socket.on('disconnect', () => {
