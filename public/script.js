@@ -1,112 +1,110 @@
 // public/script.js
-$(document).ready(() => {
-    const socket = io();
-    let nickname = '';
-    let currentColor = '#000000';
-    let showCoordinates = false;
+const socket = io();
 
-    $('#login-button').click(() => {
-        nickname = $('#nickname-input').val().trim();
-        if (nickname) {
-            socket.emit('login', nickname);
-        }
-    });
+const loginScreen = document.getElementById('login-screen');
+const gameScreen = document.getElementById('game-screen');
+const loginBtn = document.getElementById('login-btn');
+const nicknameInput = document.getElementById('nickname');
+const canvas = document.getElementById('text-canvas');
+const ctx = canvas.getContext('2d');
+const textInput = document.getElementById('text-input');
 
-    socket.on('loginSuccess', (confirmedNickname) => {
-        $('#login-screen').hide();
-        $('#world-container').show();
-        nickname = confirmedNickname;
-        socket.emit('requestInitialState');
-    });
+let nickname = '';
+let offsetX = 0;
+let offsetY = 0;
+const cellSize = 20;
 
-    const $world = $('#world');
-    const $coordinates = $('#coordinates');
-
-    function updateCell(x, y, text, color, cellNickname) {
-        const cellId = `cell-${x}-${y}`;
-        let $cell = $(`#${cellId}`);
-        
-        if (!$cell.length) {
-            $cell = $('<div>')
-                .addClass('cell')
-                .attr('id', cellId)
-                .css({
-                    left: x * 10 + 'px',
-                    top: y * 16 + 'px'
-                })
-                .appendTo($world);
-        }
-
-        $cell.text(text).css('color', color);
-
-        // Update or create nametag
-        let $nametag = $(`#nametag-${cellId}`);
-        if (!$nametag.length) {
-            $nametag = $('<div>')
-                .addClass('nametag')
-                .attr('id', `nametag-${cellId}`)
-                .appendTo($world);
-        }
-        $nametag.text(cellNickname).css({
-            left: (x * 10) + 'px',
-            top: (y * 16 - 20) + 'px'
-        });
+loginBtn.addEventListener('click', () => {
+    nickname = nicknameInput.value.trim();
+    if (nickname) {
+        socket.emit('login', nickname);
+        loginScreen.style.display = 'none';
+        gameScreen.style.display = 'flex';
+        initializeCanvas();
     }
+});
 
-    function createASCIILink() {
-        const asciiArt = `
- _____ _                       _   
-|  __ (_)                     | |  
-| |  \\_ ___  ___ ___  _ __ ___| |  
-| | __| / __|/ __/ _ \\| '__/ __| | 
-| |_\\ \\ \\__ \\ (_| (_) | | | (__|_| 
- \\____/_|___/\\___\\___/|_|  \\___(_) 
-        Server
-`;
-        const linkHtml = `<a href="https://discord.gg/K97uXkZh" target="_blank" title="Join our Discord Server">${asciiArt}</a>`;
-        $('#ascii-link').html(linkHtml);
+function initializeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    socket.emit('requestInitialData');
+}
+
+socket.on('initialData', (data) => {
+    for (const y in data) {
+        for (const x in data[y]) {
+            drawText(parseInt(x), parseInt(y), data[y][x].text, data[y][x].author);
+        }
     }
+});
 
-    // Call the function to create the ASCII art link
-    createASCIILink();
+function drawText(x, y, text, author) {
+    const screenX = (x - offsetX) * cellSize;
+    const screenY = (y - offsetY) * cellSize;
+    ctx.fillStyle = 'black';
+    ctx.font = '14px Arial';
+    ctx.fillText(text, screenX, screenY + cellSize);
+    ctx.fillStyle = 'gray';
+    ctx.font = '10px Arial';
+    ctx.fillText(author, screenX, screenY + cellSize + 12);
+}
 
-    socket.on('initialState', (world) => {
-        for (const y in world) {
-            for (const x in world[y]) {
-                const { text, color, nickname: cellNickname } = world[y][x];
-                updateCell(parseInt(x), parseInt(y), text, color, cellNickname);
-            }
+canvas.addEventListener('click', (e) => {
+    const x = Math.floor((e.clientX + offsetX * cellSize) / cellSize);
+    const y = Math.floor((e.clientY + offsetY * cellSize) / cellSize);
+    textInput.focus();
+    textInput.setAttribute('data-x', x);
+    textInput.setAttribute('data-y', y);
+});
+
+textInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        const text = textInput.value.trim();
+        const x = parseInt(textInput.getAttribute('data-x'));
+        const y = parseInt(textInput.getAttribute('data-y'));
+        if (text) {
+            socket.emit('addText', { x, y, text });
+            textInput.value = '';
         }
-    });
+    }
+});
 
-    socket.on('textUpdate', (data) => {
-        updateCell(data.x, data.y, data.text, data.color, data.nickname);
-    });
+socket.on('textAdded', (data) => {
+    drawText(data.x, data.y, data.text, data.author);
+});
 
-    $world.on('click', (e) => {
-        const x = Math.floor(e.pageX / 10);
-        const y = Math.floor(e.pageY / 16);
-        const text = prompt('Enter text:');
-        if (text !== null) {
-            socket.emit('setText', { x, y, text, color: currentColor });
-        }
-    });
+let isDragging = false;
+let lastX, lastY;
 
-    $('#color-picker').on('change', (e) => {
-        currentColor = e.target.value;
-    });
+canvas.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    lastX = e.clientX;
+    lastY = e.clientY;
+});
 
-    $('#show-coordinates').on('change', (e) => {
-        showCoordinates = e.target.checked;
-    });
+canvas.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+        const dx = e.clientX - lastX;
+        const dy = e.clientY - lastY;
+        offsetX -= dx / cellSize;
+        offsetY -= dy / cellSize;
+        lastX = e.clientX;
+        lastY = e.clientY;
+        redrawCanvas();
+    }
+});
 
-    $world.on('mousemove', (e) => {
-        const x = Math.floor(e.pageX / 10);
-        const y = Math.floor(e.pageY / 16);
-        if (showCoordinates) {
-            $coordinates.text(`X: ${x}, Y: ${y}`).show();
-        } else {
-            $coordinates.hide();
-        }
-    });
+canvas.addEventListener('mouseup', () => {
+    isDragging = false;
+});
+
+function redrawCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    socket.emit('requestInitialData');
+}
+
+window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    redrawCanvas();
 });
