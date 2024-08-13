@@ -27,13 +27,13 @@ io.on('connection', (socket) => {
   });
 
   socket.on('addText', (data) => {
-    const { x, y, text } = data;
+    const { x, y, text, color } = data;
     const worldId = socket.worldId;
     if (!worlds[worldId]) worlds[worldId] = {};
     if (!worlds[worldId][y]) worlds[worldId][y] = {};
-    worlds[worldId][y][x] = { text, author: socket.nickname };
-    io.to(worldId).emit('textAdded', { x, y, text });
-  });
+    worlds[worldId][y][x] = { text, author: socket.nickname, color };
+    io.to(worldId).emit('textAdded', { x, y, text, color });
+});
 
   socket.on('requestInitialData', (worldId) => {
     socket.join(worldId);
