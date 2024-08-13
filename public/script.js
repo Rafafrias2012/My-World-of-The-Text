@@ -53,6 +53,23 @@ $(document).ready(() => {
         });
     }
 
+    function createASCIILink() {
+        const asciiArt = `
+ _____ _                       _   
+|  __ (_)                     | |  
+| |  \\_ ___  ___ ___  _ __ ___| |  
+| | __| / __|/ __/ _ \\| '__/ __| | 
+| |_\\ \\ \\__ \\ (_| (_) | | | (__|_| 
+ \\____/_|___/\\___\\___/|_|  \\___(_) 
+        Server
+`;
+        const linkHtml = `<a href="https://discord.gg/K97uXkZh" target="_blank" title="Join our Discord Server">${asciiArt}</a>`;
+        $('#ascii-link').html(linkHtml);
+    }
+
+    // Call the function to create the ASCII art link
+    createASCIILink();
+
     socket.on('initialState', (world) => {
         for (const y in world) {
             for (const x in world[y]) {
